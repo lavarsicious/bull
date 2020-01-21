@@ -39,6 +39,12 @@ if(ARGV[5] ~= "") then
 
   -- clean stalled key
   rcall("SREM", KEYS[5], jobId)
+
+  -- remove from wait
+  if rcall("LREM", KEYS[1], 1, jobId) ~= 0 then
+    -- add to active
+    rcall("RPUSH", KEYS[2], jobId)
+  end
 else
   -- move from wait to active
   jobId = rcall("RPOPLPUSH", KEYS[1], KEYS[2])
@@ -53,14 +59,14 @@ if jobId then
     -- local jobCounter = tonumber(rcall("GET", rateLimiterKey))
     local jobCounter = tonumber(rcall("INCR", rateLimiterKey))
     local bounceBack = ARGV[8]
-    
+
     -- check if rate limit hit
     if jobCounter > maxJobs then
       if bounceBack == 'false' then
         local exceedingJobs = jobCounter - maxJobs
         local delay = tonumber(rcall("PTTL", rateLimiterKey)) + ((exceedingJobs - 1) * ARGV[7]) / maxJobs
         local timestamp = delay + tonumber(ARGV[4])
-        
+
         -- put job into delayed queue
         rcall("ZADD", KEYS[7], timestamp * 0x1000 + bit.band(jobCounter, 0xfff), jobId)
         rcall("PUBLISH", KEYS[7], timestamp)
