@@ -24,7 +24,7 @@
 
 local lockKey = KEYS[8] .. ':lock'
 local lock = redis.call("GET", lockKey)
-if not lock then             -- or (lock == ARGV[2])) then
+if not lock or lock == ARGV[2] then
   redis.call("LREM", KEYS[1], 0, ARGV[1])
   redis.call("LREM", KEYS[2], 0, ARGV[1])
   redis.call("ZREM", KEYS[3], ARGV[1])
