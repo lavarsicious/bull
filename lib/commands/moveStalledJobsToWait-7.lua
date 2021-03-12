@@ -56,7 +56,7 @@ if(#stalling > 0) then
       --  Remove from the active queue.
       local removed = rcall("LREM", KEYS[3], 1, jobId)
 
-      if(removed > 0) then
+      if(removed > 0 and rcall("EXISTS", jobKey) == 1) then
         -- If this job has been stalled too many times, such as if it crashes the worker, then fail it.
         local stalledCount = rcall("HINCRBY", jobKey, "stalledCounter", 1)
         if(stalledCount > MAX_STALLED_JOB_COUNT) then

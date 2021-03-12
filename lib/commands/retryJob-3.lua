@@ -23,8 +23,8 @@ if redis.call("EXISTS", KEYS[3]) == 1 then
   -- Check for job lock
   if ARGV[3] ~= "0" then
     local lockKey = KEYS[3] .. ':lock'
-    local lock = redis.call("GET", lockKey)
-    if redis.call("GET", lockKey) ~= ARGV[3] then
+    local token = redis.call("GET", lockKey)
+    if token and token ~= ARGV[3] then
       return -2
     end
   end

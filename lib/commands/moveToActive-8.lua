@@ -50,7 +50,11 @@ else
   jobId = rcall("RPOPLPUSH", KEYS[1], KEYS[2])
 end
 
-if jobId then
+local jobKey = ARGV[1] .. jobId
+local lockKey = jobKey .. ':lock'
+
+if jobId and rcall("EXISTS", jobKey) == 1 then
+
   -- Check if we need to perform rate limiting.
   local maxJobs = tonumber(ARGV[6])
 
@@ -80,9 +84,6 @@ if jobId then
       end
     end
   end
-
-  local jobKey = ARGV[1] .. jobId
-  local lockKey = jobKey .. ':lock'
 
   -- get a lock
   rcall("SET", lockKey, ARGV[2], "PX", ARGV[3])
